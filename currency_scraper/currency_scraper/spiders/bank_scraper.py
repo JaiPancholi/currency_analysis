@@ -5,7 +5,7 @@ import re
 import calendar
 
 from currency_scraper.items import CurrencyScraperItem
-
+from currency_scraper.database import retrieve_scraped_urls
 
 class BankScraper(scrapy.Spider):
 	name = 'bank_scraper'
@@ -63,7 +63,7 @@ class BankScraper(scrapy.Spider):
 		delta = end_date - start_date
 
 		currencies = ['GBP', 'USD', 'EUR']
-		urls = []
+		urls = set()
 
 		for currency in currencies:
 			for i in range(delta.days + 1):
@@ -76,9 +76,17 @@ class BankScraper(scrapy.Spider):
 					year = this_date.year
 
 					url = f'https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD={day}&TM={month}&TY={year}&into={currency}&rateview=D'
-					urls.append(url)
+					urls.add(url)
 
 		# pprint(urls)
 		# print(len(urls))
 
-		return urls
+		scraped_urls = retrieve_scraped_urls()
+		remaining_urls = urls - scraped_urls
+
+		print(len(scraped_urls))
+		print(len(urls))
+		print(len(remaining_urls))
+
+		return []
+		# return urls
