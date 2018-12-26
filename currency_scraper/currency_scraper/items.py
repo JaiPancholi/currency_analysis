@@ -8,6 +8,7 @@
 import scrapy
 
 class CurrencyScraperItem(scrapy.Item):
+    url = scrapy.Field()
     day = scrapy.Field()
     month = scrapy.Field()
     year = scrapy.Field()

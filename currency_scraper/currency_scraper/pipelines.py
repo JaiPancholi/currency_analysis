@@ -8,15 +8,16 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from currency_scraper.models import SpotRate
+import os
 
-engine = create_engine('postgresql://127.0.0.1:5432/postgres', echo=True)
+engine = create_engine(os.getenv('DB_URL'), echo=True)
 Session = sessionmaker(bind=engine)
-
 
 class BankScraperPipeline(object):
     def process_item(self, item, spider):
         session = Session()
         sr = SpotRate(
+            url=item['url'],
             day=item['day'],
             month=item['month'],
             year=item['year'],
