@@ -78,15 +78,9 @@ class BankScraper(scrapy.Spider):
 					url = f'https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD={day}&TM={month}&TY={year}&into={currency}&rateview=D'
 					urls.add(url)
 
-		# pprint(urls)
-		# print(len(urls))
-
 		scraped_urls = retrieve_scraped_urls()
 		remaining_urls = urls - scraped_urls
 
-		print(len(scraped_urls))
-		print(len(urls))
-		print(len(remaining_urls))
+		print(f'{len(scraped_urls)} scraped urls. {len(urls)} total urls. {len(remaining_urls)} remaining urls.')
 
-		return []
-		# return urls
+		return list(urls)

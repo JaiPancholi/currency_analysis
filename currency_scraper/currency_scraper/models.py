@@ -28,22 +28,3 @@ class SpotRate(Base):
 if __name__ == '__main__':
 	engine = create_engine(os.getenv('DB_URL'), echo=True)
 	Base.metadata.create_all(engine)
-
-	Session = sessionmaker(bind=engine)
-	session = Session()
-
-	sr = SpotRate(
-		url='https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D',
-		day=25,
-		month=12,
-		year=2018,
-		base_currency='GBP',
-		target_currency='USD',
-		base_value=1,
-		target_spot_rate='1.52',
-		target_52wk_high='1.52',
-		target_52wk_low='1.52'
-	)
-
-	session.add(sr)
-	session.commit()

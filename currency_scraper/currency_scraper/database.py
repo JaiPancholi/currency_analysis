@@ -10,10 +10,6 @@ except ModuleNotFoundError:
 	from currency_scraper import models
 	from currency_scraper.models import SpotRate
 
-def create_tables():
-	engine = create_engine(os.getenv('DB_URL'), echo=True)
-	Base.metadata.create_all(engine)
-
 def add_dummy_data():
 	engine = create_engine(os.getenv('DB_URL'), echo=True)
 	Session = sessionmaker(bind=engine)
@@ -47,4 +43,5 @@ def retrieve_scraped_urls():
 
 
 if __name__ == '__main__':
-	retrieve_scraped_urls()
+	# retrieve_scraped_urls()
+	create_tables()
