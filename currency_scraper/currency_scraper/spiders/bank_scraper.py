@@ -16,7 +16,7 @@ class BankScraper(scrapy.Spider):
     def parse(self, response):
         for el in response.xpath('//*[@id="editorial"]/table/tr'):
             day, month, year, base_currency = self.parse_url(response.url)
-            target_currency = el.xpath('td/a/text()').extract()
+            target_currency = el.xpath('td/a/text()').extract_first()
             
             row_data = el.xpath('td/text()').extract()
             target_spot_rate = row_data[0].strip()

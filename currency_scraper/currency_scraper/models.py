@@ -15,7 +15,6 @@ class SpotRate(Base):
     base_currency = Column(String)
     target_currency = Column(String)
     base_value = Column(Float)
-    # target_value = Column(Float)
     target_spot_rate = Column(Float)
     target_52wk_high = Column(Float)
     target_52wk_low = Column(Float)
@@ -39,17 +38,17 @@ if __name__ == '__main__':
     #     target_value=1.42,
     # )
 
-    sr = SpotRate(
-        day=25,
-        month=12,
-        year=2018,
-        base_currency='GBP',
-        target_currency='USD',
-        base_value=1,
-        target_spot_rate='1.52',
-        target_52wk_high='1.52',
-        target_52wk_low='1.52'
-    )
+    # sr = SpotRate(
+    #     day=25,
+    #     month=12,
+    #     year=2018,
+    #     base_currency='GBP',
+    #     target_currency='USD',
+    #     base_value=1,
+    #     target_spot_rate='1.52',
+    #     target_52wk_high='1.52',
+    #     target_52wk_low='1.52'
+    # )
 
-    session.add(sr)
-    session.commit()
+    # session.add(sr)
+    # session.commit()
