@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-import scrapy
+import re, sys, os, calendar
 from datetime import date, timedelta
-import re
-import calendar
+import scrapy
 
 from currency_scraper.items import CurrencyScraperItem
-from currency_scraper.database import retrieve_scraped_urls
+from db.helper import retrieve_scraped_urls
 
 class BankScraper(scrapy.Spider):
 	name = 'bank_scraper'
@@ -58,7 +57,7 @@ class BankScraper(scrapy.Spider):
 	@staticmethod
 	def build_start_urls():
 		# start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']
-		start_date = date(2018, 1, 1)
+		start_date = date(2000, 1, 1)
 		end_date = date(2018, 12, 21)
 		delta = end_date - start_date
 
@@ -83,4 +82,4 @@ class BankScraper(scrapy.Spider):
 
 		print(f'{len(scraped_urls)} scraped urls. {len(urls)} total urls. {len(remaining_urls)} remaining urls.')
 
-		return list(urls)
+		return list(remaining_urls)

@@ -5,10 +5,10 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from currency_scraper.models import SpotRate
-import os
+from db.models import SpotRate
 
 engine = create_engine(os.getenv('DB_URL'), echo=True)
 Session = sessionmaker(bind=engine)
