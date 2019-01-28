@@ -1,0 +1,117 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+    <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+</head>
+
+<body>
+    <pre><code class="python hljs"><span class="hljs-meta">@requires_authorization</span>
+        <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">somefunc</span><span class="hljs-params">(param1=<span class="hljs-string">''</span>, param2=<span class="hljs-number">0</span>)</span>:</span>
+            <span class="hljs-string">r'''A docstring'''</span>
+            <span class="hljs-keyword">if</span> param1 &gt; param2: <span class="hljs-comment"># interesting</span>
+                <span class="hljs-keyword">print</span> <span class="hljs-string">'Gre\'ater'</span>
+            <span class="hljs-keyword">return</span> (param2 - param1 + <span class="hljs-number">1</span> + <span class="hljs-number">0b10l</span>) <span class="hljs-keyword">or</span> <span class="hljs-keyword">None</span>
+
+        <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SomeClass</span>:</span>
+            <span class="hljs-keyword">pass</span>
+
+        <span class="hljs-meta">&gt;&gt;&gt; </span>message = <span class="hljs-string">'''interpreter
+        <span class="hljs-meta">... </span>prompt'''</span>
+        </code></pre>
+
+        I have had the idea of the topic of my first post for a considerable time, having some ideas
+        of how I would approach the problem but never sitting down to and writing them out. 
+
+        <!-- During my studies, I was introduced with the hypothesis that there are some economies of the world that are
+        leaders, and some that are followers, and the followers display the same patterns of growth
+        as the leaders, but with some form of a lag. These 'leader' economies are those wealthy nations
+        who can afford to innovate, and the followers base their economic growth through mimicing the more
+        succesful fruits of the innovation attempts. -->
+
+        <h1>The Idea</h1>
+        I was interested in looking into the methods of arbitrage that currency traders 
+        can follow to generating the large sums of money they do. I hypothosised that there are some
+        relation or pattern between the rates of currencies in foriegn markets, which hopefully I could 
+        discover and explain by using some ML techniques.
+
+        <h1>Getting the Data</h1>
+        I decided the best datasets to use would be some historical spot rates between a large variety
+        of currencies spanning economies of varying types and development stages. This was surpringly
+        not as straightforward as I initially expected, with the type and scale of data not available 
+        to download very easily. 
+
+        I decided I would collect the information myself, using a simple scraping script on a reliable
+        source of information. I found that this <a href="https://www.bankofengland.co.uk/boeapps/database/Rates.asp">section of the Bank of England</a>
+        hosted the information I needed in well structured table. 
+
+        After requesting data from different days and currencies, I discovered the URLs for the different pages
+        followed a convenient pattern. This would make generating the URLs for all of the pages I need 
+        to scrape very easy to generate.
+
+        I had recently started to use Scrapy as a crawling and scraping framework, and I was extremely
+        pleased with the ease of setup and the native parallelisation it supports. With a list of pre-generated
+        URLs to scrape, this would make the data collection process a breeze.
+
+        So I opened up a new project folder and initialised a new Scrapy project with 
+        <pre><code class="bash hljs">
+        > mkdir currency_analysis && cd currency_analysis
+        > virtualenv venv
+        > source venv/bin/activate
+        > pip install scrapy
+        > scrapy init currency_analysis
+        </code></pre>
+
+        I then write a class method to generate all of the URLs I want to scrape.
+        <pre><code class="python hljs">
+        <span class="hljs-meta">@staticmethod</span>
+        <span class="hljs-keyword">def</span> <span class="hljs-title">build_start_urls</span><span class="hljs-params">():</span>
+            <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
+            start_date = date(2000, 1, 1)
+            end_date = date(2018, 12, 21)
+            delta = end_date - start_date
+    
+            currencies = ['GBP', 'USD', 'EUR']
+            urls = <span class="hljs-keyword">set()</span>
+    
+            <span class="hljs-keyword">for</span> currency <span class="hljs-keyword">in</span> currencies:
+                <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-keyword">range(delta.days + 1):
+                    this_date = end_date - timedelta(i)
+                    weekno = this_date.weekday()
+    
+                    if weekno < 5: # if weekday
+                        day = this_date.day
+                        month = this_date.strftime("%b")
+                        year = this_date.year
+    
+                        url = f'https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD={day}&TM={month}&TY={year}&into={currency}&rateview=D'
+                        urls.add(url)
+    
+            scraped_urls = retrieve_scraped_urls()
+            remaining_urls = urls - scraped_urls
+    
+            print(f'{len(scraped_urls)} scraped urls. {len(urls)} total urls. {len(remaining_urls)} remaining urls.')
+    
+            return list(remaining_urls)
+
+            <span class="hljs-meta">@staticmethod</span>
+            <span class="hljs-keyword">def </<span class="hljs-title">build_start_urls</span>):
+                <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
+                start_date =<span class="hljs-keyword"> date(</span>2000, 1, 1)
+                end_date =<span class="hljs-keyword"> date(</span>2018, 12, 21)
+                delta = end_date - start_date
+            
+                currencies = ['GBP', 'USD', 'EUR']
+                urls = <span class="hljs-keyword">set()</span>
+            
+                <span class="hljs-keyword">for </span>currency<span class="hljs-keyword"> in </span>currencies:
+                    <span class="hljs-keyword">for </span>i<span class="hljs-keyword"> in </<span class="hljs-title">range</span>delta.days + 1):
+
+        </code></pre>
+
+        
+
+</body>
+
+</html>
