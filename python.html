@@ -1,12 +1,5 @@
 <span class="hljs-meta">@staticmethod</span>
-<span class="hljs-keyword">def </<span class="hljs-title">build_start_urls</span>):
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">build_start_urls</span>():</span>
     <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
-    start_date =<span class="hljs-keyword"> date(</span>2000, 1, 1)
-    end_date =<span class="hljs-keyword"> date(</span>2018, 12, 21)
-    delta = end_date - start_date
-
-    currencies = ['GBP', 'USD', 'EUR']
-    urls = <span class="hljs-keyword">set()</span>
-
-    <span class="hljs-keyword">for </span>currency<span class="hljs-keyword"> in </span>currencies:
-        <span class="hljs-keyword">for </span>i<span class="hljs-keyword"> in </<span class="hljs-title">range</span>delta.days + 1):
+    start_<span class="hljs-keyword">date</span> = <span class="hljs-keyword">date</span>(2000, 1, 1)
+    end_date = date(2018, 12, 21)

@@ -65,49 +65,20 @@
 
         I then write a class method to generate all of the URLs I want to scrape.
         <pre><code class="python hljs">
-        <span class="hljs-meta">@staticmethod</span>
-        <span class="hljs-keyword">def</span> <span class="hljs-title">build_start_urls</span><span class="hljs-params">():</span>
-            <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
-            start_date = date(2000, 1, 1)
-            end_date = date(2018, 12, 21)
-            delta = end_date - start_date
-    
-            currencies = ['GBP', 'USD', 'EUR']
-            urls = <span class="hljs-keyword">set()</span>
-    
-            <span class="hljs-keyword">for</span> currency <span class="hljs-keyword">in</span> currencies:
-                <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-keyword">range(delta.days + 1):
-                    this_date = end_date - timedelta(i)
-                    weekno = this_date.weekday()
-    
-                    if weekno < 5: # if weekday
-                        day = this_date.day
-                        month = this_date.strftime("%b")
-                        year = this_date.year
-    
-                        url = f'https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD={day}&TM={month}&TY={year}&into={currency}&rateview=D'
-                        urls.add(url)
-    
-            scraped_urls = retrieve_scraped_urls()
-            remaining_urls = urls - scraped_urls
-    
-            print(f'{len(scraped_urls)} scraped urls. {len(urls)} total urls. {len(remaining_urls)} remaining urls.')
-    
-            return list(remaining_urls)
-
-            <span class="hljs-meta">@staticmethod</span>
-            <span class="hljs-keyword">def </<span class="hljs-title">build_start_urls</span>):
-                <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
-                start_date =<span class="hljs-keyword"> date(</span>2000, 1, 1)
-                end_date =<span class="hljs-keyword"> date(</span>2018, 12, 21)
-                delta = end_date - start_date
-            
-                currencies = ['GBP', 'USD', 'EUR']
-                urls = <span class="hljs-keyword">set()</span>
-            
-                <span class="hljs-keyword">for </span>currency<span class="hljs-keyword"> in </span>currencies:
-                    <span class="hljs-keyword">for </span>i<span class="hljs-keyword"> in </<span class="hljs-title">range</span>delta.days + 1):
-
+                <span class="hljs-meta">@staticmethod</span>
+                <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">build_start_urls</span>():</span>
+                    <span class="hljs-comment"># start_urls = ['https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD=21&TM=Dec&TY=2018&into=GBP&rateview=D']</span>
+                    start_<span class="hljs-keyword">date</span> = <span class="hljs-keyword">date</span>(2000, 1, 1)
+                    end_<span class="hljs-keyword">date</span> = <span class="hljs-keyword">date</span>(2018, 12, 21)
+                    delta = end_date - start_date
+                
+                    currencies = ['GBP', 'USD', 'EUR']
+                
+                    urls = <span class="hljs-keyword">set</span>()
+                
+                
+                    <span class="hljs-keyword">for</span> currency <span class="hljs-keyword">in</span> currencies:
+                        <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-keyword">range</span>(delta.days + 1):
         </code></pre>
 
         
