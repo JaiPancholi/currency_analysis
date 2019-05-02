@@ -79,9 +79,59 @@
                 
                     <span class="hljs-keyword">for</span> currency <span class="hljs-keyword">in</span> currencies:
                         <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-keyword">range</span>(delta.days + 1):
+                            this_date = end_date - timedelta(i)
+                            weekno = this_date.weekday()
+            
+                            <span class="hljs-keyword">if</span> weekno <span class="hljs-keyword"><</span> 5: # if weekday
+                                day = this_date.day
+                                month = this_date.strftime("%b")
+                                year = this_date.year
+            
+                                url = f'https://www.bankofengland.co.uk/boeapps/database/Rates.asp?TD={day}&TM={month}&TY={year}&into={currency}&rateview=D'
+                                urls.add(url)
+            
+                    scraped_urls = retrieve_scraped_urls()
+                    remaining_urls = urls - scraped_urls
+            
+                    <span class="hljs-keyword">print</span>(f'{<span class="hljs-keyword">len</span>(scraped_urls)} scraped urls. {<span class="hljs-keyword">len</span>(urls)} total urls. {<span class="hljs-keyword">len</span>(remaining_urls)} remaining urls.')
+            
+                    <span class="hljs-keyword">return</span> <span class="hljs-keyword">list</span>(remaining_urls)
         </code></pre>
-
-        
+        I then scrape these pages, respecting all robots.txt, extract the infromation needed from the table and after making use of the Item Pipelines mechanism within Scrapy, yield the results into a local Postgres server
+        <pre><code>
+            def parse(self, response):
+            for el in response.xpath('//*[@id="editorial"]/table/tr'):
+                day, month, year, base_currency = self.parse_url(response.url)
+                target_currency = el.xpath('td/a/text()').extract_first()
+                
+                row_data = el.xpath('td/text()').extract()
+                try:
+                    target_spot_rate = row_data[0].strip()
+                except:
+                    target_spot_rate = None
+                try:
+                    target_52wk_high = row_data[1].strip()
+                except:
+                    target_52wk_high = None
+                try:
+                    target_52wk_low = row_data[2].strip()
+                except:
+                    target_52wk_low = None
+    
+                yield CurrencyScraperItem(
+                        url=response.url,
+                        day=day,
+                        month=month,
+                        year=year,
+                        base_currency=base_currency,
+                        target_currency=target_currency,
+                        base_value=1,
+                        target_spot_rate=target_spot_rate,
+                        target_52wk_high=target_52wk_high,
+                        target_52wk_low=target_52wk_low
+                    )
+    
+        </code></pre>
 
 </body>
 
