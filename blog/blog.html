@@ -62,7 +62,6 @@
         > pip install scrapy
         > scrapy init currency_analysis
         </code></pre>
-
         I then write a class method to generate all of the URLs I want to scrape.
         <pre><code class="python hljs">
                 <span class="hljs-meta">@staticmethod</span>
@@ -97,7 +96,7 @@
             
                     <span class="hljs-keyword">return</span> <span class="hljs-keyword">list</span>(remaining_urls)
         </code></pre>
-        I then scrape these pages, respecting all robots.txt, extract the infromation needed from the table and after making use of the Item Pipelines mechanism within Scrapy, yield the results into a local Postgres server
+        I then scrape these pages, respecting all robots.txt, extract the infromation needed from the table and after making use of the Item Pipelines mechanism within Scrapy, yield the results into a local Postgres server.
         <pre><code class="python hljs">
             def parse(self, response):
                 for el in response.xpath('//*[@id="editorial"]/table/tr'):
@@ -148,16 +147,16 @@
         </code></pre>
         and finally drop unnecessary columns and reorder remaining columns, and I am left with clean dataframe to start some analysis. 
         <br>
-        INSERT DATAFRAME HERE.
+        <img src="assets/initial_df.png">
         <br>
-
         You can read the dataframe by taking the first row and saying that on 31st of May 2007, you could purchase 1.2082 Australian Dollars with 1 US Dollar at the end of the market day (terminolgy??).
-        
+        <br>
         <br>
         As a sanity check, I plot a some historical exchange rate data and cross check the data displayed in the Notebook with XE.com, a service provider that shows exchange rates. Reassuringly, I find the data that I have collected matches data found elsewhere.
+        <br>        
         <img src="assets/price.png">
         <br>
-
+        <br>
         My next step was to try to find out if I could identify some trends in the data that I would be able to utilise in building a predictive model. With the information I have collected, I derive two additional types of data that explains different market phenomenoms; the relative price changes of a currency, sometimes called a return, and the volatility of price changes of a currency, called the volatility. 
         To calculate returns, I needed to calculate the percentage difference of spot rates of a given currency, looking over a daily, weekly, monthly, and a yearly period. Due to the lack of price data on certain non trading-days such as weekends and bank holidays, I resampled the data to carry over the price of a currency from the previous existing date - this approach is one of several that can be taken. 
         I implemented this using Pandas resampling method over the different length periods I wanted returns over, demonstrated like this
@@ -219,13 +218,12 @@
         
             return currency_df
         </code></pre>
-
         What's important to notice here is that the resulting dataframe will give us, say the spot rate on any given day, as well as the percentage increase of price based on a future price. I.e. If on the 1st April 2000 I can buy 2.466 Australian Dollars with 1 GBP, the weekly return column
         shows us that in one months time, on 1st May 2000, the price will be 0.4% higher. This feature will allow us to use current data such spot rates and volatility to determine future price.
-
+        <br>
+        <br>
         To derive price volatility, I took a simpler approach. All I needed to was group by price and the period over which I wanted to analyse and calcualted the standard deviation in the target spot rates. In future analysis, this will change to
         grouping by the previous n-days rather than my current method.
-
         <pre><code class="python hljs">
             week_vol = currency_df.groupby(['week', 'month', 'year', 'target_currency_symbol'])['target_spot_rate'].std()
             week_vol = week_vol.reset_index().rename({'target_spot_rate': '1w_vol'}, axis=1)
@@ -240,17 +238,24 @@
             currency_df = currency_df.merge(month_vol, how='left', on=['month', 'year', 'target_currency_symbol'])
             currency_df = currency_df.merge(year_vol, how='left', on=['year', 'target_currency_symbol'])
         </code></pre>
-        <br>
         I then reshape the data so that each row represents a particular date and I can use prices and price volatilties of all currencies to predict returns in all currencies. The resulting dataframe looks like this
-        INSERT DATAFRAME HERE.
+        <br>
+        <img src="assets/feature_df.png">
+        <br>
         <br>
         To quickly identify any interesting trends, I plot a correlation matrix of data, to determine if there are any linear relationships between returns and prices/volatilies.
+        <br>
         <img src="assets/corr.png">
         <br>
-        Any particular dark or light patches in this plot would indicate a trend between the two variables. For example the one year return on GBP to Japanese Yen is correlated with the annual volatility betwen the GBP and the Euro. This is confirmed by plotting these two variables.
+        Any particular dark or light patches in this plot would indicate a trend between the two variables. For example the one year return on GBP to Japanese Yen is correlated with the annual volatility betwen the GBP and the Euro. 
+        <br>
+        This is confirmed by plotting these two negatively correlated variables.
+        <br>
         <img src="assets/neg_corr.png">
         <br>
-        And an example of some partially correlated data is 
+        <br>
+        And an example of some partially positively correlated data is 
+        <br>
         <img src="assets/pos_corr.png">
         <br>
         Note: It's clear that the lack of a more sophisticated approach to calculating volatility may be affecting the results, however I carried on with the intent to fix this later.
