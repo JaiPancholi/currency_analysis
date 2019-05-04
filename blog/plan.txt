@@ -1,0 +1,15 @@
+What am I looking for in the data?
+I want to find any correlation between short,mid,long-term currency changes.
+I want to identify any occurences of potential arbitrage, where I can trade between currencies for profit in a reliable, consistent periods/events.
+
+
+1.) Confirm scrapability of Bank of England website
+    Scrapy, 
+2.) Set up SQL instance
+    Write a guide on how to set a few different types of databases up
+3.) Start scraping
+4.) Begin Analysis
+
+Next Projects
+Model Interprability - use house price data
+Text Classification?
