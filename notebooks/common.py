@@ -24,32 +24,116 @@ def treat_data(df):
 
     return df
 
+# def extract_period_returns(currency_df):
+#     """
+#     input should be a dataframe that that has spot rates from multiple currencies against a single currency.
+#     """
+
+#     # TODO FIX the problem of day return on Monday is always null, so we should spill over from Friday.
+
+
+#     currency_pivot_df = currency_df.pivot(index='date', columns='target_currency_symbol', values='target_spot_rate')
+    
+#     # get relative change in prices of currencies
+#     currency_pivot_d_change = currency_pivot_df/currency_pivot_df.shift(1, freq=pd.to_timedelta(1, 'D')) - 1
+#     currency_pivot_d_change = currency_pivot_d_change.unstack().reset_index().rename({0: '1d_return'}, axis=1)
+
+#     currency_pivot_w_change = currency_pivot_df/currency_pivot_df.shift(7, freq=pd.to_timedelta(1, 'D')) - 1
+#     currency_pivot_w_change = currency_pivot_w_change.unstack().reset_index().rename({0: '1w_return'}, axis=1)
+
+#     currency_pivot_m_change = currency_pivot_df/currency_pivot_df.shift(30, freq=pd.to_timedelta(1, 'D')) - 1
+#     currency_pivot_m_change = currency_pivot_m_change.unstack().reset_index().rename({0: '1m_return'}, axis=1)
+
+#     currency_pivot_y_change = currency_pivot_df/currency_pivot_df.shift(365, freq=pd.to_timedelta(1, 'D')) - 1
+#     currency_pivot_y_change = currency_pivot_y_change.unstack().reset_index().rename({0: '1y_return'}, axis=1)
+
+#     currency_df = currency_df.merge(currency_pivot_d_change, how='left', on=['date', 'target_currency_symbol'])
+#     currency_df = currency_df.merge(currency_pivot_w_change, how='left', on=['date', 'target_currency_symbol'])
+#     currency_df = currency_df.merge(currency_pivot_m_change, how='left', on=['date', 'target_currency_symbol'])
+#     currency_df = currency_df.merge(currency_pivot_y_change, how='left', on=['date', 'target_currency_symbol'])
+#     currency_df = currency_df[~currency_df['base_currency'].isnull()]
+    
+#     return currency_df
+
 def extract_period_returns(currency_df):
-    """
-    input should be a dataframe that that has spot rates from multiple currencies against a single currency.
-    """
-    currency_pivot_df = currency_df.pivot(index='date', columns='target_currency_symbol', values='target_spot_rate')
+    frames = []
+    for target_currency in currency_df['target_currency_symbol'].unique():
+        temp_df = currency_df[currency_df['target_currency_symbol']==target_currency]
+        temp_df = extract_period_returns_single_currency(temp_df)
+        temp_df['target_currency_symbol'] = target_currency
+
+        frames.append(temp_df)
+
+    df = pd.concat(frames)
+    df['day'] = df['date'].dt.day
+    df['week'] = df['date'].dt.week
+    df['month'] = df['date'].dt.month
+    df['year'] = df['date'].dt.year
+
+    return df
+
+def extract_period_returns_single_currency(currency_df):
+    # extract a single target currency and drop unneeded columns
+    currency_df.drop(columns=['target_currency_symbol', 'base_currency'], inplace=True)
+    currency_df.drop(columns=['year', 'month', 'week', 'day'], inplace=True)
+
+    # add in data for missing dates
+    currency_df = currency_df.sort_values(['date'])
+    currency_df.set_index('date',inplace=True)
+    currency_df = currency_df.resample('D', axis=0).pad()
+    currency_df = currency_df.reset_index()
+
+    # find shifts in period dates
+    currency_df['date_last_day'] = currency_df['date'] - pd.to_timedelta(1, 'D')
+    currency_df['date_last_week'] = currency_df['date'] - pd.to_timedelta(1, 'W')
+    currency_df['date_last_month'] = currency_df['date'] - pd.to_timedelta(1, 'M')
+    currency_df['date_last_year'] = currency_df['date'] - pd.to_timedelta(1, 'Y')
+    currency_df['date_last_day'] = currency_df['date_last_day'].dt.floor(freq='D')
+    currency_df['date_last_week'] = currency_df['date_last_week'].dt.floor(freq='D')
+    currency_df['date_last_month'] = currency_df['date_last_month'].dt.floor(freq='D')
+    currency_df['date_last_year'] = currency_df['date_last_year'].dt.floor(freq='D')
+
     
-    # get relative change in prices of currencies
-    currency_pivot_d_change = currency_pivot_df/currency_pivot_df.shift(1, freq=pd.to_timedelta(1, 'D')) - 1
-    currency_pivot_d_change = currency_pivot_d_change.unstack().reset_index().rename({0: '1d_return'}, axis=1)
+    # extract the price on the shifted dates
+    rename_dict = {
+        'date_x': 'date',
+        'date_last_day_x': 'date_last_day',
+        'date_last_week_x': 'date_last_week',
+        'date_last_month_x': 'date_last_month',
+        'date_last_year_x': 'date_last_year',
+        'target_spot_rate_x': 'target_spot_rate'
+    }
 
-    currency_pivot_w_change = currency_pivot_df/currency_pivot_df.shift(7, freq=pd.to_timedelta(1, 'D')) - 1
-    currency_pivot_w_change = currency_pivot_w_change.unstack().reset_index().rename({0: '1w_return'}, axis=1)
+    currency_df = currency_df.merge(currency_df[['date_last_day','target_spot_rate']], left_on='date', right_on='date_last_day')
+    currency_df.drop(columns='date_last_day_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_day_future_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
 
-    currency_pivot_m_change = currency_pivot_df/currency_pivot_df.shift(30, freq=pd.to_timedelta(1, 'D')) - 1
-    currency_pivot_m_change = currency_pivot_m_change.unstack().reset_index().rename({0: '1m_return'}, axis=1)
+    currency_df = currency_df.merge(currency_df[['date_last_week','target_spot_rate']], left_on='date', right_on='date_last_week')
+    currency_df.drop(columns='date_last_week_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_week_future_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
 
-    currency_pivot_y_change = currency_pivot_df/currency_pivot_df.shift(365, freq=pd.to_timedelta(1, 'D')) - 1
-    currency_pivot_y_change = currency_pivot_y_change.unstack().reset_index().rename({0: '1y_return'}, axis=1)
+    currency_df = currency_df.merge(currency_df[['date_last_month','target_spot_rate']], left_on='date', right_on='date_last_month')
+    currency_df.drop(columns='date_last_month_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_month_future_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
 
-    currency_df = currency_df.merge(currency_pivot_d_change, how='left', on=['date', 'target_currency_symbol'])
-    currency_df = currency_df.merge(currency_pivot_w_change, how='left', on=['date', 'target_currency_symbol'])
-    currency_df = currency_df.merge(currency_pivot_m_change, how='left', on=['date', 'target_currency_symbol'])
-    currency_df = currency_df.merge(currency_pivot_y_change, how='left', on=['date', 'target_currency_symbol'])
-    currency_df = currency_df[~currency_df['base_currency'].isnull()]
-    
+    currency_df = currency_df.merge(currency_df[['date_last_year','target_spot_rate']], left_on='date', right_on='date_last_year')
+    currency_df.drop(columns='date_last_year_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_year_future_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
+
+    # caluclate returns based on shifted prices
+    currency_df['one_day_future_return'] = (currency_df['one_day_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+    currency_df['one_week_future_return'] = (currency_df['one_week_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+    currency_df['one_month_future_return'] = (currency_df['one_month_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+    currency_df['one_year_future_return'] = (currency_df['one_year_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+    currency_df.drop(columns=['one_day_future_price', 'one_week_future_price', 'one_month_future_price', 'one_year_future_price'], inplace=True)
+    currency_df.drop(columns=['date_last_day', 'date_last_week', 'date_last_month', 'date_last_year'], inplace=True)
+
     return currency_df
+
 
 def extract_volatility_of_prices(currency_df):
     week_vol = currency_df.groupby(['week', 'month', 'year', 'target_currency_symbol'])['target_spot_rate'].std()
@@ -74,7 +158,7 @@ def reshape_df(currency_df, target_currencies=['AUD', 'CAD', 'USD', 'EUR', 'JPY'
     """
     # reshape dataframe to use returns from other currencies as features.
     cols = ['target_spot_rate', '1d_return', '1w_return', '1m_return', '1y_return', '1w_vol', '1m_vol', '1y_vol']
-
+    cols = ['target_spot_rate', '1w_vol', '1m_vol', '1y_vol', 'one_day_future_return', 'one_week_future_return', 'one_month_future_return', 'one_year_future_return']
     test_df = currency_df
 
     for cur in target_currencies:
