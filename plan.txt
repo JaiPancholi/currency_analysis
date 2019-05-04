@@ -9,3 +9,7 @@ I want to identify any occurences of potential arbitrage, where I can trade betw
     Write a guide on how to set a few different types of databases up
 3.) Start scraping
 4.) Begin Analysis
+
+Next Projects
+Model Interprability - use house price data
+Text Classification?

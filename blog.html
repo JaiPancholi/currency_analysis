@@ -130,9 +130,27 @@
                         target_52wk_high=target_52wk_high,
                         target_52wk_low=target_52wk_low
                     )
-    
         </code></pre>
+        <h2>EDA</h2>
+        I begin an exploration phase by pulling in the data into a Jupyter notebook using SqlAlchemy, and performing a few peices of initial treatment. I notice dates are formatted as string and fix this with
+        <code><pre>
+            # date manipulation
+            df['date'] = df.apply(lambda x: datetime.date(x['year'], x['month'], x['day']), axis=1)
+            df['date'] = pd.to_datetime(df['date'])
+            df['week'] = df['date'].dt.week
+        </pre></code>
+        I rename certain values and replace with the ISO names of the currencies for cleaner visualiations with
+        <code><pre>
+            currency_dict = {'Japanese Yen': 'JPY','Malaysian ringgit': 'MYR','New Zealand Dollar': 'NZD','Norwegian Krone': 'NOK','Polish Zloty': 'PLN','Russian Ruble': 'RUB','Saudi Riyal': 'SAR','Singapore Dollar': 'SGD','South African Rand': 'ZAR','South Korean Won': 'KRW','Swedish Krona': 'SEK','Swiss Franc': 'CHF','Taiwan Dollar': 'TWD','Thai Baht': 'THB','Turkish Lira': 'TRY','US Dollar': 'USD','Australian Dollar': 'AUD','Canadian Dollar': 'CAD','Chinese Yuan': 'Yuan','Cyprus Pound': 'CYP','Czech Koruna': 'CZK','Danish Krone': 'DKK','Estonian Kroon': 'EEK','Euro': 'EUR','Hong Kong Dollar': 'HKD','Hungarian Forint': 'HUF','Indian Rupee': 'INR','Israeli Shekel': 'ILS','Latvian Lats': 'LVL','Lithuanian Litas': 'LTL','Maltese Lira': 'MTL','Slovak Koruna': 'SKK','Slovenian Tolar': 'SIT','Sterling': 'GBP','Swedish Krona ': 'SEK','Brazilian Real': 'BRL','Austrian Schilling': 'ATS','Belgian Franc': 'BEF','Deutschemark': 'DEM','Finnish Markka': 'FIM','French Franc': 'FRF','Greek Drachma': 'GRD','Irish Punt': 'IEP','Italian Lire': 'ITL','Netherlands Guilder': 'NLG','Portuguese Escudo': 'PTE','Spanish Peseta': 'ESP'}
+            df['target_currency'].replace('Latvian Lats\r\nCurrency joined the Euro on 01/01/2014', 'Latvian Lats', inplace=True)
+            df['target_currency_symbol'] = df['target_currency'].apply(lambda x: currency_dict[x])
+            df.drop(columns=['target_currency'], inplace=True)
+        </pre></code>
+        and finally drop unnecessary columns and reorder remaining columns, and I am left with clean dataframe to start some analysis. 
+        INSERT DATAFRAME HERE.
+        You can read the dataframe by taking the first row and saying that on 31st of May 2007, you could purchase 1.2082 Australian Dollars with 1 US Dollar at the end of the market day (terminolgy??).
 
+        As a sanity check, I plot a some historical exchange rate data and cross check the data displayed in the Notebook with XE.com, a service provider that shows exchange rates. Reassuringly, I find the data that I have collected matches data found elsewhere.
+        INSERT PLOT HERE
 </body>
-
 </html>
