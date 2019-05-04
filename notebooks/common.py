@@ -130,6 +130,33 @@ def extract_period_returns_single_currency(currency_df):
     currency_df['one_month_future_return'] = (currency_df['one_month_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
     currency_df['one_year_future_return'] = (currency_df['one_year_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
     currency_df.drop(columns=['one_day_future_price', 'one_week_future_price', 'one_month_future_price', 'one_year_future_price'], inplace=True)
+
+    currency_df = currency_df.merge(currency_df[['date','target_spot_rate']], left_on='date_last_day', right_on='date')
+    currency_df.drop(columns='date_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_day_past_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
+
+    currency_df = currency_df.merge(currency_df[['date','target_spot_rate']], left_on='date_last_week', right_on='date')
+    currency_df.drop(columns='date_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_week_past_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
+
+    currency_df = currency_df.merge(currency_df[['date','target_spot_rate']], left_on='date_last_month', right_on='date')
+    currency_df.drop(columns='date_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_month_past_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
+
+    currency_df = currency_df.merge(currency_df[['date','target_spot_rate']], left_on='date_last_year', right_on='date')
+    currency_df.drop(columns='date_y', inplace=True)
+    rename_dict['target_spot_rate_y'] = 'one_year_past_price'
+    currency_df = currency_df.rename(rename_dict, axis=1)
+
+    # caluclate returns based on shifted prices
+    currency_df['one_day_past_return'] = (currency_df['target_spot_rate'] - currency_df['one_day_past_price'])/currency_df['one_day_past_price']
+    currency_df['one_week_past_return'] = (currency_df['target_spot_rate'] - currency_df['one_week_past_price'])/currency_df['one_week_past_price']
+    currency_df['one_month_past_return'] = (currency_df['target_spot_rate'] - currency_df['one_month_past_price'])/currency_df['one_month_past_price']
+    currency_df['one_year_past_return'] = (currency_df['target_spot_rate'] - currency_df['one_year_past_price'])/currency_df['one_year_past_price']
+    
     currency_df.drop(columns=['date_last_day', 'date_last_week', 'date_last_month', 'date_last_year'], inplace=True)
 
     return currency_df
@@ -158,7 +185,8 @@ def reshape_df(currency_df, target_currencies=['AUD', 'CAD', 'USD', 'EUR', 'JPY'
     """
     # reshape dataframe to use returns from other currencies as features.
     cols = ['target_spot_rate', '1d_return', '1w_return', '1m_return', '1y_return', '1w_vol', '1m_vol', '1y_vol']
-    cols = ['target_spot_rate', '1w_vol', '1m_vol', '1y_vol', 'one_day_future_return', 'one_week_future_return', 'one_month_future_return', 'one_year_future_return']
+    cols = ['target_spot_rate', '1w_vol', '1m_vol', '1y_vol', 'one_day_future_return', 'one_week_future_return', 'one_month_future_return', 'one_year_future_return', 'one_day_past_return', 'one_week_past_return', 'one_month_past_return', 'one_year_past_return']
+    
     test_df = currency_df
 
     for cur in target_currencies:

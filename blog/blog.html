@@ -4,6 +4,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
     <script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script>
+    <style>
+        .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 80%;
+        }
+    </style>
 </head>
 
 <body>
@@ -147,14 +155,14 @@
         </code></pre>
         and finally drop unnecessary columns and reorder remaining columns, and I am left with clean dataframe to start some analysis. 
         <br>
-        <img src="assets/initial_df.png">
+        <img src="assets/initial_df.png" class="center">
         <br>
         You can read the dataframe by taking the first row and saying that on 31st of May 2007, you could purchase 1.2082 Australian Dollars with 1 US Dollar at the end of the market day (terminolgy??).
         <br>
         <br>
         As a sanity check, I plot a some historical exchange rate data and cross check the data displayed in the Notebook with XE.com, a service provider that shows exchange rates. Reassuringly, I find the data that I have collected matches data found elsewhere.
         <br>        
-        <img src="assets/price.png">
+        <img src="assets/price.png" class="center">
         <br>
         <br>
         My next step was to try to find out if I could identify some trends in the data that I would be able to utilise in building a predictive model. With the information I have collected, I derive two additional types of data that explains different market phenomenoms; the relative price changes of a currency, sometimes called a return, and the volatility of price changes of a currency, called the volatility. 
@@ -240,23 +248,23 @@
         </code></pre>
         I then reshape the data so that each row represents a particular date and I can use prices and price volatilties of all currencies to predict returns in all currencies. The resulting dataframe looks like this
         <br>
-        <img src="assets/feature_df.png">
+        <img src="assets/feature_df.png" class="center">
         <br>
         <br>
         To quickly identify any interesting trends, I plot a correlation matrix of data, to determine if there are any linear relationships between returns and prices/volatilies.
         <br>
-        <img src="assets/corr.png">
+        <img src="assets/corr.png" class="center">
         <br>
         Any particular dark or light patches in this plot would indicate a trend between the two variables. For example the one year return on GBP to Japanese Yen is correlated with the annual volatility betwen the GBP and the Euro. 
         <br>
         This is confirmed by plotting these two negatively correlated variables.
         <br>
-        <img src="assets/neg_corr.png">
+        <img src="assets/neg_corr.png" class="center">
         <br>
         <br>
         And an example of some partially positively correlated data is 
         <br>
-        <img src="assets/pos_corr.png">
+        <img src="assets/pos_corr.png" class="center">
         <br>
         Note: It's clear that the lack of a more sophisticated approach to calculating volatility may be affecting the results, however I carried on with the intent to fix this later.
         <br>
