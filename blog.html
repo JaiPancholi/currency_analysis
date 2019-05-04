@@ -153,7 +153,70 @@
         As a sanity check, I plot a some historical exchange rate data and cross check the data displayed in the Notebook with XE.com, a service provider that shows exchange rates. Reassuringly, I find the data that I have collected matches data found elsewhere.
         INSERT PLOT HERE
 
-        # TODO FIX the problem of day return on Monday is always null, so we should spill over from Friday.
+        My next step was to try to find out if I could identify some trends in the data that I would be able to utilise in building a predictive model. With the information I have collected, I derive two additional types of data that explains different market phenomenoms; the relative price changes of a currency, sometimes called a return, and the volatility of price changes of a currency, called the volatility. 
+        To calculate returns, I needed to calculate the percentage difference of spot rates of a given currency, looking over a daily, weekly, monthly, and a yearly period. Due to the lack of price data on certain non trading-days such as weekends and bank holidays, I resampled the data to carry over the price of a currency from the previous existing date - this approach is one of several that can be taken. 
+        I implemented this using Pandas resampling method over the different length periods I wanted returns over, demonstrated like this
+        <code><pre>
+            # add in data for missing dates
+            currency_df = currency_df.sort_values(['date'])
+            currency_df.set_index('date',inplace=True)
+            currency_df = currency_df.resample('D', axis=0).pad()
+            currency_df = currency_df.reset_index()
+        
+            # find shifts in period dates
+            currency_df['date_last_day'] = currency_df['date'] - pd.to_timedelta(1, 'D')
+            currency_df['date_last_week'] = currency_df['date'] - pd.to_timedelta(1, 'W')
+            currency_df['date_last_month'] = currency_df['date'] - pd.to_timedelta(1, 'M')
+            currency_df['date_last_year'] = currency_df['date'] - pd.to_timedelta(1, 'Y')
+            currency_df['date_last_day'] = currency_df['date_last_day'].dt.floor(freq='D')
+            currency_df['date_last_week'] = currency_df['date_last_week'].dt.floor(freq='D')
+            currency_df['date_last_month'] = currency_df['date_last_month'].dt.floor(freq='D')
+            currency_df['date_last_year'] = currency_df['date_last_year'].dt.floor(freq='D')
+        
+            
+            # extract the price on the shifted dates
+            rename_dict = {
+                'date_x': 'date',
+                'date_last_day_x': 'date_last_day',
+                'date_last_week_x': 'date_last_week',
+                'date_last_month_x': 'date_last_month',
+                'date_last_year_x': 'date_last_year',
+                'target_spot_rate_x': 'target_spot_rate'
+            }
+        
+            currency_df = currency_df.merge(currency_df[['date_last_day','target_spot_rate']], left_on='date', right_on='date_last_day')
+            currency_df.drop(columns='date_last_day_y', inplace=True)
+            rename_dict['target_spot_rate_y'] = 'one_day_future_price'
+            currency_df = currency_df.rename(rename_dict, axis=1)
+        
+            currency_df = currency_df.merge(currency_df[['date_last_week','target_spot_rate']], left_on='date', right_on='date_last_week')
+            currency_df.drop(columns='date_last_week_y', inplace=True)
+            rename_dict['target_spot_rate_y'] = 'one_week_future_price'
+            currency_df = currency_df.rename(rename_dict, axis=1)
+        
+            currency_df = currency_df.merge(currency_df[['date_last_month','target_spot_rate']], left_on='date', right_on='date_last_month')
+            currency_df.drop(columns='date_last_month_y', inplace=True)
+            rename_dict['target_spot_rate_y'] = 'one_month_future_price'
+            currency_df = currency_df.rename(rename_dict, axis=1)
+        
+            currency_df = currency_df.merge(currency_df[['date_last_year','target_spot_rate']], left_on='date', right_on='date_last_year')
+            currency_df.drop(columns='date_last_year_y', inplace=True)
+            rename_dict['target_spot_rate_y'] = 'one_year_future_price'
+            currency_df = currency_df.rename(rename_dict, axis=1)
+        
+            # caluclate returns based on shifted prices
+            currency_df['one_day_future_return'] = (currency_df['one_day_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+            currency_df['one_week_future_return'] = (currency_df['one_week_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+            currency_df['one_month_future_return'] = (currency_df['one_month_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+            currency_df['one_year_future_return'] = (currency_df['one_year_future_price'] - currency_df['target_spot_rate'])/currency_df['target_spot_rate']
+            currency_df.drop(columns=['one_day_future_price', 'one_week_future_price', 'one_month_future_price', 'one_year_future_price'], inplace=True)
+            currency_df.drop(columns=['date_last_day', 'date_last_week', 'date_last_month', 'date_last_year'], inplace=True)
+        
+            return currency_df
+        </pre></code>
+
+        What's important to notice here is that the resulting dataframe will give us, say the spot rate on any given day, as well as the percentage increase of price based on a future price. I.e. If on the 1st April 2000 I can buy 2.466 Australian Dollars with 1 GBP, the weekly return column
+        shows us that in one months time, on 1st May 2000, the price will be 0.4% higher. This feature will allow us to use current data such spot rates and volatility to determine future price.
 
         
 </body>
