@@ -268,5 +268,82 @@
         <br>
         Note: It's clear that the lack of a more sophisticated approach to calculating volatility may be affecting the results, however I carried on with the intent to fix this later.
         <br>
+        I fix this problem by taking advantage of the rolling method of a dataframe with an DateTimeIndex that allows calcualtions over certain periods of time.
+        This is a simple and effective fix and much simpler implementation than the one used to calculate returns. Here is the updated correlation matrix along with some interesting correlations.
+        <br>
+        <img src="assets/corr_fix.png" class="center">
+        <br>
+        To find the distribution of each variable, I use a handy function I have written that shows the distribution of all columns of a dataframe to be shown in a single plot.
+        <pre><code class="python hljs">
+            import math
+            def plot_matrix_of_graphs(graph_func, df, cols, n=6):
+                """
+                :param graph_func: plotting function
+                :param df: dataframe
+                :param cols: columns to plot
+                :param n: number of rows in plot viz matrix
+                """
+                temp_df = df.dropna()
+                m = math.ceil(len(cols)/n)
+                fig, axes = plt.subplots(n, m, figsize=(20, 15))
+                plt.subplots_adjust(hspace=0.5)
+            
+                i, j = 0, 0
+                    
+                for col in cols:
+                    graph_func(temp_df[col], ax=axes[i, j])
+                    j += 1
+                    if j >= m:
+                        j = 0
+                        i += 1
+        </code></pre>
+        <br>
+        <img src="assets/neg_corr_fix.png" class="center">
+        <img src="assets/pos_corr_fix.png" class="center">
+        <!-- <img src="assets/neg_corr_fix.png">
+        <img src="assets/pos_corr_fix.png"> -->
+        <br>
+        We can see here there are heavy skews in some variables and significant outliers in others. When modelling, I will try to fit the model to the raw data and if there is no convergance, I will remove significant outliers and then normalise the data. The order of applying these treatments is important
+        because if I first normalise, and variables that contain outliers will force the majority of a data to occupy a much smaller range than when normalising data without outliers. This is due to the ...?
+        <h2>Building Predictions</h2>
+        I decided that the label I wanted to start of by attempting to predict the annual return on the GBP to USD exchange rate so I remove the target variable from the dataframe. I also drop all columns that refer to all other future returns since I will not have
+        this data at hand when making predictions in real life. I split the data into train and test sets and loop through a few models I expect to give positive results, utilising cross validation sets. 
+        <pre><code class="python hljs">
+        from sklearn.model_selection import train_test_split
+        from sklearn.model_selection import cross_val_score
+        from xgboost import XGBRegressor
+        from sklearn.linear_model import LinearRegression, Ridge, Lasso
+        
+        models = [
+            XGBRegressor(),
+            LinearRegression(),
+            Ridge(),
+        ]
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=42)
+        
+        k_folds = 3
+        model_scores = []
+        for model in models:
+            model_name = model.__class__.__name__
+            accuracies = cross_val_score(model, X_train, y_train, scoring='r2', cv=k_folds)
+            for accuracy in accuracies:
+                model_scores.append([model_name, accuracy])
+        
+        df = pd.DataFrame(model_scores)
+        ax = sns.boxplot(x=0, y=1, data=df)
+        ax.set_title('R-Squared on Models Predicting Annual Return on GBP:USD Rate')
+        </code></pre>
+        <br>
+        This results in a the following plot, which shows the XGBoost is the most suitable algorithm for this particular problem. I then confirm this by evaluating the accuracy on the test set, acheiving a 0.96 score. The relatively high score may indicate a case of overfitting, however I do not address this problem now.
+        To get a quick idea of feature importance, I use a library called SHAP. I will explain the various uses of SHAP and other methods of interpreting models in another blog post.  
+        <br>
+        <img src="assets/model_accuracy.png" class="center">
+        <br>
+        <img src="assets/feature_importance.png" class="center">
+        <br>
+        <h2>Conclusion</h2>
+        ...
+
 </body>
 </html>
